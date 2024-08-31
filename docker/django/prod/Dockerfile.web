@@ -1,0 +1,23 @@
+# pull official base image
+FROM nginx/unit:1.25.0-python3.9
+
+ARG APP_HOME=/home/i69
+RUN apt-get update 
+ARG PIP_REQUIREMENTS=requirements.txt
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# install dependencies
+RUN pip install --upgrade pip setuptools
+
+# set work directory
+WORKDIR ${APP_HOME}
+
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
+RUN pip3 install opencv-python-headless 
+COPY . .
+COPY ./docker/.conf.d/nginx/config.json  /docker-entrypoint.d/config.json
+ENTRYPOINT ["/bin/bash","/home/i69/docker/entrypoint-prod.sh"]

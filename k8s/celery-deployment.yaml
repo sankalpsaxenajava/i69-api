@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery
+  namespace: i69app
+  labels:
+    lab: celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      lab: celery
+  template:
+    metadata:
+      labels:
+        lab: celery
+    spec:
+      containers:
+        - name: celery
+          image: __REPLACE_IMAGE__
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          envFrom:
+            - secretRef:
+                name: i69env
+          volumeMounts:
+          - mountPath: /home/i69/media
+            name: media-nfs
+      imagePullSecrets:
+      - name: i69
+      volumes:
+      - name: media-nfs
+        nfs:
+          path: /exports/api/media
+          server: 10.114.0.7
+

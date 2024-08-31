@@ -1,0 +1,52 @@
+{% extends "admin/object_history.html" %}
+{% block content %}
+<h1>Purchase History</h1>
+<div class="results">
+    <table id="result_list" width="100%">
+        <thead>
+            <tr>
+                <th><div class="text"><span>Date</span></div><div class="clear"></div></th>
+                <th><div class="text"><span>Purchase Coins</span></div><div class="clear"></div></th>
+            </tr>
+        </thead>
+        <tbody>
+            
+    {% for history in purchase_history_list %}
+    <tr>
+        <td>{{history.date_created}}</td>
+        <td>{{history.purchase_coins}}</td>
+    </tr>
+    {% endfor %}
+    
+</tbody>
+    </table>
+    </div>
+<br/><br/>
+<!-- gifts -->
+<h1>Gift History</h1>
+    <div class="results">
+        <table id="result_list" width="100%">
+            <thead>
+                <tr>
+                    <th><div class="text"><span>Date</span></div><div class="clear"></div></th>
+                    <th><div class="text"><span>Gift Name</span></div><div class="clear"></div></th>
+                    <th><div class="text"><span>Gift Cost</span></div><div class="clear"></div></th>
+                    <th><div class="text"><span>Sender</span></div><div class="clear"></div></th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        {% for history in gift_history_list %}
+        <tr>
+            <td>{{history.purchased_on}}</td>
+            <td>{{history.gift.gift_name}}</td>
+            <td>{{history.gift.cost}}</td>
+            <td>{{history.user.username}}</td>
+        </tr>
+        {% endfor %}
+        
+    </tbody>
+        </table>
+        </div>
+    
+{% endblock %}

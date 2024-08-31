@@ -1,0 +1,56 @@
+version: "3.7"
+
+services:
+  web:
+    image: ${CI_REGISTRY_IMAGE:-i69}/${IMAGE:-web}:${SANITIZED_BRANCH:-latest}
+    build:
+      context: .
+      dockerfile: ./docker/django/Dockerfile
+      args:
+        UID: ${UID:-10600}
+        GID: ${GID:-10600}
+        UNAME: ${UNAME:-i69}
+    container_name: web
+    ports:
+      - "9080:80"
+    hostname: web
+    volumes:
+      - media_volume:/home/i69/media
+    env_file:
+      - ${ENV_FILE}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - i69_net
+
+  postgres:
+    image: docker.io/bitnami/postgresql:14 
+    container_name: postgres
+    hostname: postgres
+    volumes:
+      - pg_data:/bitnami/postgresql
+    env_file:
+      - ${ENV_FILE}
+    networks:
+      - i69_net
+
+  redis:
+    image: ${CI_REGISTRY_IMAGE:-i69}/${IMAGE:-redis}:${SANITIZED_BRANCH:-latest}
+    build:
+      context: .
+      dockerfile: ./docker/redis/Dockerfile
+    container_name: redis
+    hostname: redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - i69_net
+
+networks:
+  i69_net:
+
+volumes:
+  pg_data:
+  redis_data:
+  media_volume:

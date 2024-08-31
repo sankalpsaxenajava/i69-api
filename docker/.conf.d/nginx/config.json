@@ -1,0 +1,54 @@
+{
+    "settings": {
+            "http": {
+                "header_read_timeout": 10,
+                "body_read_timeout": 10,
+                "send_timeout": 10,
+                "idle_timeout": 10,
+                "max_body_size": 6291456,
+                "discard_unsafe_fields": false
+            }
+        },
+    "listeners": {
+        "*:80": {
+            "pass": "routes"
+        }
+    },
+    "routes": [
+        {
+            "match": {
+                "uri": "/static/*"
+            },
+            "action": {
+                "share": "/home/i69/"
+            }
+        },
+        {
+            "match": {
+                "uri": "/media/*"
+            },
+            "action": {
+                "share": "/home/i69/"
+            }
+        },
+        {
+            "action": {
+                "pass": "applications/api"
+            }
+        }
+    ],
+    "applications":{
+        "api":{
+            "type":"python 3",
+            "limits": {
+                "timeout": 4,
+                "requests": 1000
+            },
+            "user": "root",
+            "processes": 4,
+            "path":"/home/i69/",
+            "module":"framework.wsgi"
+        }
+    }
+}
+

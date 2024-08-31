@@ -1,0 +1,48 @@
+.dedicated-runner: &dedicated-runner
+  tags:
+  - dev-runner
+stages:
+ - build
+ - deploy
+ - check
+
+before_script:
+  - export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed -r 's#^release/##' | sed 's/\//_/g')"
+  - export SANITIZED_ROLLING_BRANCH=${SANITIZED_BRANCH}-rolling
+
+build_stage:
+  <<: *dedicated-runner
+  stage: build
+  script:
+    - export ENV_FILE=$DEV_ENV
+    - docker-compose -f docker-compose.ci.yml build 
+  only:
+    refs:
+    - develop
+
+deploy_stage:
+  <<: *dedicated-runner
+  stage: deploy
+  script:
+    - mkdir -p backend
+    - cp docker-compose.ci.yml backend/docker-compose.yml
+    - export ENV_FILE=$DEV_ENV
+    - cd backend && docker-compose up -d --remove-orphans
+  only:
+    refs:
+    - develop
+check_schema_matched:
+  <<: *dedicated-runner
+  stage: check
+  script:
+    - docker exec  test-db psql -U dbuser -d postgres -c "drop database i69database;"
+    - docker exec  test-db psql -U dbuser -d postgres -c "create database i69database;"
+    - cat $TEST_ENV > test-env
+    - docker run --env-file test-env --network test --entrypoint=python3 i69/web:develop manage.py migrate --skip-check
+    - docker exec  postgres bash -c "PGPASSWORD=MBGZ8ppHDcFwnrRP pg_dump -U dbuser -d i69database -s" | sort -d| grep -v Dumped | sed '/^--/d'| sed '/^$/d'| grep -v reader | grep -v "SCHEMA public" > schema1
+    - docker exec  test-db pg_dump --dbname="postgres://dbuser:MBGZ8ppHDcFwnrRP@test-db:5432/i69database" -s | sort -d| grep -v Dumped  | sed '/^--/d'| sed '/^$/d' > schema2
+    - diff schema1 schema2
+    - echo "Everything is fine"
+  only:
+    refs:
+    - develop
